@@ -24,7 +24,7 @@ export default {
   ],
 
   serverMiddleware: {
-    '/myapp': '~/server/peerServer'
+    // '/myapp': '~/server/peerServer'
   },
   components: true,
 
