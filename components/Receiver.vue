@@ -82,6 +82,7 @@ export default Vue.extend({
             debug: 3,
             path: '/myapp',
             port: 9002,
+            secure: false,
         });
     
         this.init();
