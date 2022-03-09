@@ -2,11 +2,20 @@
   <div>Hi!</div>
 </template>
 
-<script>
+<script lang="ts">
+import Vue from 'vue';
+
+declare global {
+    interface Window {
+        parcelRequire: any;
+    }
+}
+
 if (typeof window !== 'undefined') {
   window.parcelRequire = undefined;
 }
-definePageMeta({
-  layout: "custom",
-});
+
+export default Vue.extend({
+  name: 'IndexPage'
+})
 </script>

@@ -29,13 +29,10 @@
 </template>
 
 <script>
+import Vue from 'vue';
 import QRCode from 'qrcode';
 
-definePageMeta({
-  layout: "custom",
-});
-
-export default {
+export default Vue.extend({
     data() {
         return {
             peer: null,
@@ -89,5 +86,5 @@ export default {
     
         this.init();
     },
-};
+});
 </script>

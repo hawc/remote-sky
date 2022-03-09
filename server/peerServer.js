@@ -1,30 +1,22 @@
-import { PeerServer } from 'peer';
+const express = require("express");
+const http = require('http');
+const app = express();
+const { ExpressPeerServer } = require('peer');
 
-let ready = false;
+const server = app.listen(9000);
 
-function peerServer(server) {
-    if (!ready) {
-        const peerServer = PeerServer({
-            host: 'localhost',
-            debug: true,
-            path: '/myapp',
-            ssl: {},
-            port: 9000,
-        });
-/*
-        server.app.use(function (req, res, next) {
-            res.setHeader("Access-Control-Allow-Origin", "*");
-            res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-            next();
-        });
-    */
-        server.app.use(peerServer);
+const peerServer = ExpressPeerServer(server, {
+    proxied: true,
+    debug: true,
+    path: '/myapp',
+    ssl: {}
+});
 
-        console.log(peerServer, 'PeerServer started.');
-    };
-    ready = true;
-    }
+app.use(peerServer);
 
-export {
-    peerServer,
+console.log('Listening.');
+
+export default {
+    path: '/peerjs',
+    handler: peerServer
 }

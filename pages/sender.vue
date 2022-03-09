@@ -7,11 +7,12 @@
 </template>
 
 <script>
+import Vue from 'vue';
 import Sender from '@/components/Sender.vue';
 
-export default {
+export default Vue.extend({
     components: {
         Sender,
     }
-}
+});
 </script>
