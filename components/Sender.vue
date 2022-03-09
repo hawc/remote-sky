@@ -38,6 +38,10 @@
 <script>
 import Vue from 'vue';
 
+function getKey() {
+    return (Math.floor(Math.random() * 2 ** 18).toString(36).padStart(4, 0)).toString();
+};
+
 export default Vue.extend({
     data() {
         return {
@@ -103,14 +107,11 @@ export default Vue.extend({
             this.$refs.sendMessage.removeEventListener('click', this.sendMessage);
             this.showCallContent();
         },
-        getKey() {
-            return (Math.floor(Math.random() * 2 ** 18).toString(36).padStart(4, 0)).toString();
-        },
     },
     async mounted() {
         const { peerjs } = await import('peerjs');
 
-        this.peer = new peerjs.Peer(this.getKey(), {
+        this.peer = new peerjs.Peer(getKey(), {
             host: location.hostname,
             debug: 3,
             path: '/myapp',

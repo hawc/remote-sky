@@ -32,6 +32,10 @@
 import Vue from 'vue';
 import QRCode from 'qrcode';
 
+function getKey() {
+    return (Math.floor(Math.random() * 2 ** 18).toString(36).padStart(4, 0)).toString();
+}
+
 export default Vue.extend({
     data() {
         return {
@@ -44,8 +48,6 @@ export default Vue.extend({
     },
     methods: {
         init() {
-            this.key = this.getKey();
-
             this.generateQrCode(`https://${ location.hostname }/sender?k=${ this.key }`);
 
             this.peer.on('open', () => {
@@ -67,9 +69,6 @@ export default Vue.extend({
                 });
             });
         },
-        getKey() {
-            return (Math.floor(Math.random() * 2 ** 18).toString(36).padStart(4, 0)).toString();
-        },
         generateQrCode(text) {
             QRCode.toDataURL(text).then(image => this.qrcodeImage = image);
         },
@@ -77,7 +76,10 @@ export default Vue.extend({
     async mounted() {
         const { peerjs } = await import('peerjs');
 
-        this.peer = new peerjs.Peer(this.key, {
+        let key = getKey();
+        this.key = key;
+
+        this.peer = new peerjs.Peer(key, {
             host: location.hostname,
             debug: 3,
             path: '/myapp',
