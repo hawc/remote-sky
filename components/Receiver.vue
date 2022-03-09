@@ -81,7 +81,7 @@ export default Vue.extend({
             host: location.hostname,
             debug: 3,
             path: '/myapp',
-            port: 9000,
+            port: 443,
         });
     
         this.init();
