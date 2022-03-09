@@ -3,14 +3,13 @@ const http = require('http');
 const app = express();
 const { ExpressPeerServer } = require('peer');
 
-const server = app.listen(9000);
+const server = app.listen(9001);
 
 const peerServer = ExpressPeerServer(server, {
     proxied: true,
     debug: true,
     path: '/myapp',
     ssl: {},
-    port: 9001,
 });
 
 app.use(peerServer);
