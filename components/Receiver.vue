@@ -2,7 +2,6 @@
     <div>
         <div class="container">
             <h1>Get messages</h1>
-            {{ key }}
             <p class="big">
                 {{ statusMessage }}
             </p>
@@ -54,7 +53,6 @@ export default Vue.extend({
                 this.statusMessage = `Your device ID is: ${ this.peer.id }`;
 
                 this.peer.on('connection', (connection) => {
-                    connection.open = true;
                     connection.on('open', () => {
                         // here we can pass default settings to the user.
                         connection.send('Connection established.');
@@ -83,7 +81,7 @@ export default Vue.extend({
             host: location.hostname,
             debug: 3,
             path: '/myapp',
-            port: 9002,
+            port: process.env.NODE_ENV !== 'production' ? 9001 : 9002,
             secure: false,
         });
     

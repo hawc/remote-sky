@@ -115,16 +115,14 @@ export default Vue.extend({
             host: location.hostname,
             debug: 3,
             path: '/myapp',
-            port: 9002,
+            port: process.env.NODE_ENV !== 'production' ? 9001 : 9002,
             secure: false,
         });
 
-        console.log(this.peer);
-
         this.peer.on('open', () => {
-            this.statusMessage = `Your device ID is: ${this.peer.id}`;
+            this.statusMessage = `Your device ID is: ${ this.peer.id }`;
             this.peer.on('error', (data) => {
-                alert(data);
+                console.error(data);
             });
 
             this.peer.on('close', () => {
