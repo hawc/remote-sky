@@ -3,7 +3,7 @@ const http = require('http');
 const app = express();
 const { ExpressPeerServer } = require('peer');
 
-const server = app.listen(9000, '0.0.0.0');
+const server = app.listen(9000);
 
 const peerServer = ExpressPeerServer(server, {
     proxied: true,
