@@ -9,8 +9,7 @@ const peerServer = ExpressPeerServer(server, {
     proxied: true,
     debug: true,
     path: '/myapp',
-    ssl: {},
-    port: 443,
+    ssl: {}
 });
 
 app.use(peerServer);
