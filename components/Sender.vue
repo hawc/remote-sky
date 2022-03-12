@@ -20,18 +20,6 @@
             </section>
             <div v-html="response"></div>
         </div>
-        <section class="modal" hidden>
-            <div id="close">
-                close
-            </div>
-            <div class="inner-modal">
-                <label>Give us your friend's device ID</label>
-                <input placeholder="Enter your friend's device ID" aria-colcount="10">
-                <button class="connect-btn">
-                    Connect
-                </button>
-            </div>
-        </section>
     </div>
 </template>
 
@@ -56,12 +44,13 @@ export default Vue.extend({
     },
     methods: {
         showCallContent() {
-            this.statusMessage = `Your device ID is: ${this.peer.id}`;
+            this.statusMessage = '';
+            this.$refs.sendMessage.removeEventListener('click', this.sendMessage);
             this.callButtonHidden = false;
             this.callContainerHidden = true;
         },
         showReconnectContent() {
-            this.statusMessage = `Your device ID is: ${this.peer.id}`;
+            this.statusMessage = '';
             this.recallButtonHidden = false;
             this.callContainerHidden = true;
         },
@@ -75,28 +64,28 @@ export default Vue.extend({
             this.connection.send(this.$refs.message.value);
         },
         connectPeers() {
-            var url = new URL(window.location.href);
-            var code = url.searchParams.get('k') ?? prompt('Please enter key code.');
+            const url = new URL(window.location.href);
+            const code = url.searchParams.get('k') ?? prompt('Please enter key code.');
             if (code) {
                 this.connection = this.peer.connect(code);
-                if (this.connection) {
-                    console.log('connection');
-                    console.log(this.connection);
+                this.connection.on('open', () => {
                     this.connection.on('data', (data) => {
-                        this.response = `${data}<br>${ this.response }`;
+                        this.response = `${ data }<br>${ this.response }`;
                     });
                     this.connection.on('close', () => {
                         this.showCallContent();
                     });
                     this.$refs.sendMessage.addEventListener('click', this.sendMessage);
-                } else {
-                    console.log('Error connecting.');
-                }
+
+                    this.showConnectedContent();
+                });
+                this.connection.on('error', (error) => {
+                    console.error('Error connecting: ', error);
+                });
             }
         },
         call() {
             this.connectPeers();
-            this.showConnectedContent();
         },
         recall() {
             this.connection = this.peer.reconnect();
@@ -104,7 +93,6 @@ export default Vue.extend({
         },
         hangUp() {
             this.connection.close();
-            this.$refs.sendMessage.removeEventListener('click', this.sendMessage);
             this.showCallContent();
         },
     },
@@ -113,17 +101,13 @@ export default Vue.extend({
 
         this.peer = new peerjs.Peer(getKey(), {
             host: location.hostname,
-            debug: 3,
             path: '/myapp',
             port: process.env.NODE_ENV !== 'production' ? 9001 : 9002,
             secure: false,
         });
 
         this.peer.on('open', () => {
-            this.statusMessage = `Your device ID is: ${ this.peer.id }`;
-            this.peer.on('error', (data) => {
-                console.error(data);
-            });
+            this.statusMessage = '';
 
             this.peer.on('close', () => {
                 this.showCallContent();
@@ -132,6 +116,10 @@ export default Vue.extend({
             this.peer.on('disconnected', () => {
                 this.showReconnectContent();
             });
+        });
+
+        this.peer.on('error', (data) => {
+            console.error(data);
         });
     },
 });
