@@ -1,15 +1,14 @@
 <template>
     <div>
+        <canvas ref="canvasDump" id="canvasDump" />
+        <main></main>
         <div class="container">
-            <h1>Get messages</h1>
             <p class="big">
                 {{ statusMessage }}
             </p>
             <section class="call-container">
                 <div v-html="response"></div>
             </section>
-        </div>
-        <div>
             <img v-if="qrcodeImage" :src="qrcodeImage" alt="QR Code" />
         </div>
     </div>
@@ -34,7 +33,7 @@ export default Vue.extend({
         };
     },
     methods: {
-        init() {
+        initPeer() {
             this.generateQrCode(`https://${ location.hostname }/sender?k=${ this.key }`);
 
             this.peer.on('open', () => {
@@ -72,7 +71,7 @@ export default Vue.extend({
             secure: false,
         });
     
-        this.init();
+        this.initPeer();
     },
 });
 </script>

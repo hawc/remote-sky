@@ -95,6 +95,23 @@ export default Vue.extend({
             this.connection.close();
             this.showCallContent();
         },
+        initPeer() {
+            this.peer.on('open', () => {
+                this.statusMessage = '';
+
+                this.peer.on('close', () => {
+                    this.showCallContent();
+                });
+
+                this.peer.on('disconnected', () => {
+                    this.showReconnectContent();
+                });
+            });
+
+            this.peer.on('error', (data) => {
+                console.error(data);
+            });
+        }
     },
     async mounted() {
         const { peerjs } = await import('peerjs');
@@ -106,21 +123,7 @@ export default Vue.extend({
             secure: false,
         });
 
-        this.peer.on('open', () => {
-            this.statusMessage = '';
-
-            this.peer.on('close', () => {
-                this.showCallContent();
-            });
-
-            this.peer.on('disconnected', () => {
-                this.showReconnectContent();
-            });
-        });
-
-        this.peer.on('error', (data) => {
-            console.error(data);
-        });
+        this.initPeer();
     },
 });
 </script>
