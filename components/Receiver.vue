@@ -4,7 +4,7 @@
             <Renderer ref="renderer" />
         </main>
         <div class="container">
-            <p class="big">
+            <p class="statusMessage">
                 {{ statusMessage }}
             </p>
             <section class="call-container">
@@ -35,24 +35,37 @@ export default Vue.extend({
             statusMessage: 'Connecting...',
             key: '',
             qrcodeImage: '',
+            connection: null,
         };
+    },
+    computed: {
+        settings() {
+            return {
+                globeDiameter: this.$store.state.globeDiameter,
+                ringsCount: this.$store.state.ringsCount,
+                ringsDiameter: this.$store.state.ringsDiameter,
+                ringsDistance: this.$store.state.ringsDistance,
+                ringsTilt: this.$store.state.ringsTilt,
+                contrast: this.$store.state.contrast,
+                pixelation: this.$store.state.pixelation,
+                rotationSpeed: this.$store.state.rotationSpeed,
+            }
+        },
     },
     methods: {
         initPeer() {
             this.generateQrCode(`https://${ location.hostname }/sender?k=${ this.key }`);
 
             this.peer.on('open', () => {
-                this.statusMessage = `Your device ID is: ${ this.peer.id }`;
+                this.statusMessage = `${ this.peer.id }`;
 
                 this.peer.on('connection', (connection) => {
+                    this.connection = connection;
                     connection.on('open', () => {
-                        // here we can pass default settings to the user.
-                        connection.send('Connection established.');
+                        this.sendMessage({ settings: this.settings });
                     });
                     connection.on('data', (data) => {
-                        if ('status' in data) {
-                            this.response = `${ data.status }<br>${ this.response }`;
-                        } else if ('settings' in data) {
+                        if ('settings' in data) {
                             this.$refs.renderer.SET_OPTIONS(data.settings);
                         }
                     });
@@ -62,6 +75,11 @@ export default Vue.extend({
                     console.log('closed');
                 });
             });
+        },
+        sendMessage(data = {}) {
+            if (this.connection) {
+                this.connection.send(data);
+            }
         },
         generateQrCode(text) {
             QRCode.toDataURL(text).then(image => this.qrcodeImage = image);
@@ -84,12 +102,12 @@ export default Vue.extend({
                     {
                         urls: "turn:openrelay.metered.ca:80",
                         username: "openrelayproject",
-                        credential: "openrelayproject"
+                        credential: "openrelayproject",
                     },
                     {
                         urls: "turn:openrelay.metered.ca:443",
                         username: "openrelayproject",
-                        credential: "openrelayproject"
+                        credential: "openrelayproject",
                     },
                 ],
             },

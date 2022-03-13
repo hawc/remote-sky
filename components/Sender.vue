@@ -73,20 +73,6 @@
             <p id="caststatus" class="big">
                 {{ statusMessage }}
             </p>
-            <button class="call-btn" type="button" @click.prevent="call" :hidden="callButtonHidden">
-                Connect
-            </button>
-            <button class="recall-btn" type="button" @click.prevent="recall" :hidden="recallButtonHidden">
-                Reconnect
-            </button>
-            <section class="call-container" :hidden="callContainerHidden">
-                <button class="hangup-btn" type="button" @click.prevent="hangUp">
-                    Hang up
-                </button><br>
-                <input ref="message" type="text">
-                <button ref="sendMessage" type="button">Send</button><br>
-            </section>
-            <div v-html="response"></div>
         </div>
     </div>
 </template>
@@ -119,9 +105,6 @@ export default Vue.extend({
 
             peer: null,
             connection: null,
-            callContainerHidden: true,
-            callButtonHidden: false,
-            recallButtonHidden: true,
             response: '',
             statusMessage: 'Connecting...',
             settings: {
@@ -304,22 +287,8 @@ export default Vue.extend({
         },
         showCallContent() {
             this.statusMessage = '';
-            this.$refs.sendMessage.removeEventListener('click', this.sendMessage);
-            this.callButtonHidden = false;
-            this.callContainerHidden = true;
         },
-        showReconnectContent() {
-            this.statusMessage = '';
-            this.recallButtonHidden = false;
-            this.callContainerHidden = true;
-        },
-        showConnectedContent() {
-            this.statusMessage = `You're connected`;
-            this.callButtonHidden = true;
-            this.recallButtonHidden = true;
-            this.callContainerHidden = false;
-        },
-        sendMessage(data = { status: this.$refs.message.value}) {
+        sendMessage(data = {}) {
             if (this.connection) {
                 this.connection.send(data);
             }
@@ -331,14 +300,15 @@ export default Vue.extend({
                 this.connection = this.peer.connect(code);
                 this.connection.on('open', () => {
                     this.connection.on('data', (data) => {
-                        this.response = `${ data }<br>${ this.response }`;
+                        if ('settings' in data) {
+                            this.SET_OPTIONS(data.settings);
+                        }
                     });
                     this.connection.on('close', () => {
                         this.showCallContent();
                     });
-                    this.$refs.sendMessage.addEventListener('click', this.sendMessage);
 
-                    this.showConnectedContent();
+                    this.statusMessage = `You're connected`;
                 });
                 this.connection.on('error', (error) => {
                     console.error('Error connecting: ', error);
@@ -350,7 +320,7 @@ export default Vue.extend({
         },
         recall() {
             this.connection = this.peer.reconnect();
-            this.showConnectedContent();
+            this.statusMessage = `You're connected`;
         },
         hangUp() {
             this.connection.close();
@@ -366,7 +336,7 @@ export default Vue.extend({
                 });
 
                 this.peer.on('disconnected', () => {
-                    this.showReconnectContent();
+                    this.statusMessage = 'You are Disconnected. Please reload.';
                 });
             });
 
@@ -402,12 +372,12 @@ export default Vue.extend({
                     {
                         urls: "turn:openrelay.metered.ca:80",
                         username: "openrelayproject",
-                        credential: "openrelayproject"
+                        credential: "openrelayproject",
                     },
                     {
                         urls: "turn:openrelay.metered.ca:443",
                         username: "openrelayproject",
-                        credential: "openrelayproject"
+                        credential: "openrelayproject",
                     },
                 ],
             },
