@@ -15,9 +15,6 @@ body {
     overflow: hidden;
 }
 .controls {
-    position: absolute;
-    height: 100vh;
-    top: 0;
     padding: 20px;
     overflow-y: auto;
 }
@@ -28,23 +25,17 @@ body {
     padding: 20px;
 }
 .controls > .row {
-    max-width: 270px;
-    height: 30px;
+    display: block;
     margin: 3px 0;
 }
 .controls label {
     display: inline-block;
     vertical-align: top;
-    /* width: 150px; */
-    height: 30px;
-    line-height: 30px;
 }
 .controls input,
 .controls select {
     display: inline-block;
     vertical-align: top;
-    width: 120px;
-    height: 30px;
     margin: 0;
     accent-color: hotpink;
     padding: 2px 4px;
@@ -142,4 +133,7 @@ input[type="text"] {
     border-radius: 2rem;
     box-shadow: 0 0.33rem 1rem rgba(0,0,0,0.2);
     background-color: #ffffff;
+}
+.container--controls {
+    display: none;
 }

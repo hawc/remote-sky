@@ -69,7 +69,7 @@
                 <input v-model="donutMode" id="donutMode" type="checkbox">
             </div>
         </div>
-        <div class="container">
+        <div class="container container--controls">
             <p id="caststatus" class="big">
                 {{ statusMessage }}
             </p>
