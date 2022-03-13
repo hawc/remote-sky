@@ -1,7 +1,7 @@
 <template>
     <div>
         <main>
-            <Renderer />
+            <Renderer ref="renderer" />
         </main>
         <div class="container">
             <p class="big">
@@ -50,7 +50,11 @@ export default Vue.extend({
                         connection.send('Connection established.');
                     });
                     connection.on('data', (data) => {
-                        this.response = `${ data }<br>${ this.response }`;
+                        if ('status' in data) {
+                            this.response = `${ data.status }<br>${ this.response }`;
+                        } else if ('settings' in data) {
+                            this.$refs.renderer.SET_OPTIONS(data.settings);
+                        }
                     });
                 });
 

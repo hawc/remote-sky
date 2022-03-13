@@ -145,6 +145,7 @@ export default Vue.extend({
             deep: true,
             handler(settings) {
                 this.SET_OPTIONS(settings);
+                this.sendMessage({ settings });
             },
         },
         colorName(value) {
@@ -318,8 +319,10 @@ export default Vue.extend({
             this.recallButtonHidden = true;
             this.callContainerHidden = false;
         },
-        sendMessage() {
-            this.connection.send(this.$refs.message.value);
+        sendMessage(data = { status: this.$refs.message.value}) {
+            if (this.connection) {
+                this.connection.send(data);
+            }
         },
         connectPeers() {
             const url = new URL(window.location.href);

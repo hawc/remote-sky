@@ -1,7 +1,7 @@
 <template>
     <div>
         <Sender />
-        <Receiver />
+        <!--<Receiver />-->
     </div>
 </template>
 

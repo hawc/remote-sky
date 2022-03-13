@@ -7,7 +7,7 @@
 
 <script>
 import Vue from 'vue';
-import { mapMutations, mapState } from 'vuex';
+import { mapActions, mapMutations, mapState } from 'vuex';
 import p5 from 'p5';
 import vert from '@/assets/threshold.vert';
 import frag from '@/assets/threshold.frag';
@@ -80,6 +80,9 @@ export default Vue.extend({
         },
     },
     methods: {
+        ...mapActions([
+            'SET_OPTIONS',
+        ]),
         ...mapMutations([
             'SET_IS_RECORDING',
             'SET_IS_RECORDING_NOW',
