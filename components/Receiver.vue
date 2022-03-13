@@ -1,6 +1,8 @@
 <template>
     <div>
-        <Renderer />
+        <main>
+            <Renderer />
+        </main>
         <div class="container">
             <p class="big">
                 {{ statusMessage }}

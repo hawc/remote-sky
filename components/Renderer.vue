@@ -204,6 +204,7 @@ export default Vue.extend({
                     p.frameRate(30);
                     p.createCanvas(800, 800, p.WEBGL);
                     p.setAttributes('preserveDrawingBuffer', true);
+                    p.setAttributes('alpha', true);
                     planetGraphic = p.createGraphics(800, 800, p.WEBGL);
                     frontShader = p.createShader(vert, frag);
                 };
@@ -317,6 +318,7 @@ export default Vue.extend({
                     }
                     frontShader.setUniform('useColor3', this.useColor3 || colorPresetUsed ? 1.0 : 0.0);
                     frontShader.setUniform('thresholdValue', threshold);
+
                     p.rect(0, 0, p.width, p.height);
                 };
             };
@@ -327,8 +329,6 @@ export default Vue.extend({
                     this.SET_STOP_MULTIPLICATOR(1);
                 }
             });
-            /* eslint-disable no-new */
-            /* eslint-disable new-cap */
             back = new p5(this.backLayer);
             front = new p5(this.frontLayer);
         },
