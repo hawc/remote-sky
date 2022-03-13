@@ -359,6 +359,7 @@ export default Vue.extend({
         initPeer() {
             this.peer.on('open', () => {
                 this.statusMessage = '';
+                this.call();
 
                 this.peer.on('close', () => {
                     this.showCallContent();
