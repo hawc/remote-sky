@@ -1,8 +1,6 @@
 <template>
     <div>
-        <ClientOnly>
-            <Receiver />
-        </ClientOnly>
+        <Receiver />
     </div>
 </template>
 

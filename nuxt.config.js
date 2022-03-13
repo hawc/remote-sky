@@ -16,6 +16,8 @@ export default {
     ]
   },
 
+  ssr: false,
+
   css: [
     '~/public/style.css',
   ],
@@ -38,5 +40,12 @@ export default {
   ],
 
   build: {
+    extend(config) {
+      config.module.rules.push({
+        test: /\.(frag|vert|glsl)$/,
+        use: 'raw-loader',
+      });
+    }
   }
+
 }

@@ -1,7 +1,6 @@
 <template>
     <div>
-        <canvas ref="canvasDump" id="canvasDump" />
-        <main></main>
+        <Renderer />
         <div class="container">
             <p class="big">
                 {{ statusMessage }}
@@ -17,12 +16,16 @@
 <script>
 import Vue from 'vue';
 import QRCode from 'qrcode';
+import Renderer from './Renderer.vue';
 
 function getKey() {
     return (Math.floor(Math.random() * 2 ** 18).toString(36).padStart(4, 0)).toString();
 }
 
 export default Vue.extend({
+    components: { 
+        Renderer,
+    },
     data() {
         return {
             peer: null,
