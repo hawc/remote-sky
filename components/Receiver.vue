@@ -77,7 +77,7 @@ export default Vue.extend({
             host: location.hostname,
             path: '/myapp',
             port: process.env.NODE_ENV !== 'production' ? 9001 : 9002,
-            secure: false,
+            secure: process.env.NODE_ENV === 'production',
         });
     
         this.initPeer();
