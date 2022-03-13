@@ -49,6 +49,8 @@ export default Vue.extend({
                 contrast: this.$store.state.contrast,
                 pixelation: this.$store.state.pixelation,
                 rotationSpeed: this.$store.state.rotationSpeed,
+                colorPadding: this.$store.state.colorPadding,
+                colorName: this.$store.state.colorName,
             }
         },
     },

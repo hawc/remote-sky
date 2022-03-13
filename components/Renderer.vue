@@ -12,6 +12,8 @@ import p5 from 'p5';
 import vert from '@/assets/threshold.vert';
 import frag from '@/assets/threshold.frag';
 import gifshot from 'gifshot';
+import colormap from 'colormap';
+import colorscale from 'colormap/colorScale';
 
 let back = null;
 let front = null;
@@ -22,29 +24,14 @@ export default Vue.extend({
             backLayer: null,
             frontLayer: null,
             mediaRecorder: null,
-            colorPresets: {
-                mercury: [
-                    '#73172d', '#fa6a0a', '#3b1725',
-                ],
-                venus: [
-                    '#a041d7', '#0f0f69', '#642db4',
-                ],
-                earth: [
-                    '#14a02e', '#0a2c6e', '#285cc4',
-                ],
-                moon: [
-                    '#7782ad', '#e9ebff', '#b9bffb',
-                ],
-                mars: [
-                    '#bb7547', '#dba463', '#e4d2aa',
-                ],
-                bw: [
-                    '#000000', '#000000', '#ffffff',
-                ],
-            },
             skyColors: [
                 '#00000f', '#8a6da2', '#f8eeff',
             ],
+            colors: Object.keys(colorscale),
+            shades: 40,
+            color1: '#000000',
+            color2: '#000000',
+            color3: '#000000',
         };
     },
     computed: {
@@ -56,9 +43,8 @@ export default Vue.extend({
             'ringsTilt',
             'globeTexture',
             'colorPreset',
-            'color1',
-            'color2',
-            'color3',
+            'colorName',
+            'colorPadding',
             'useColor3',
             'contrast',
             'pixelation',
@@ -73,10 +59,18 @@ export default Vue.extend({
             return document.querySelector('main canvas').offsetWidth / 800;
         },
         pixelDensity () {
-            return this.pixelation * ((0.5 / window.devicePixelRatio) * this.sizeRatio);
+            return (1.7 - this.pixelation) * ((0.5 / window.devicePixelRatio) * this.sizeRatio);
         },
         maxDimension () {
             return Math.max(window.innerWidth, window.innerHeight);
+        },
+    },
+    watch: {
+        colorName(value) {
+            this.getColorMap(value);
+        },
+        colorPadding() {
+            this.getColorMap(this.colorName);
         },
     },
     methods: {
@@ -94,6 +88,17 @@ export default Vue.extend({
             'SET_DL_NAME',
             'PUSH_GIF_DATA',
         ]),
+        getColorMap(colorMapIndex) {
+            let colors = colormap({
+                colormap: this.colors[colorMapIndex],
+                nshades: this.shades,
+                format: 'hex',
+                alpha: 1
+            });
+            this.color1 = colors[this.colorPadding];
+            this.color2 = colors[(colors.length - (colors.length % 2)) / 2];
+            this.color3 = colors[colors.length - 1 - this.colorPadding];
+        },
         hexToRgb (hex) {
             const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
             hex = hex.replace(shorthandRegex, function (m, r, g, b) {
@@ -109,18 +114,15 @@ export default Vue.extend({
             ]) : null;
         },
         getImageData (canvas1, canvas2, width, height) {
-            // create a new canvas
             const c = this.$refs.canvasDump;
-            // set its width&height to the required ones
             c.width = width;
             c.height = height;
-            // draw our canvas to the new one
             const context = c.getContext('2d');
             context.imageSmoothingEnabled = false;
 
             context.drawImage(canvas1, 0, 0, canvas1.width, canvas1.height, 0, 0, width, height);
             context.drawImage(canvas2, 0, 0, canvas2.width, canvas2.height, 0, 0, width, height);
-            // return the resized canvas dataURL
+
             return c.toDataURL();
         },
         createGif (images) {
@@ -337,6 +339,7 @@ export default Vue.extend({
         },
     },
     mounted() {
+        this.getColorMap(this.colorName);
         this.initP5();
     },
 });

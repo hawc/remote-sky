@@ -23,24 +23,24 @@
             </div>
             <hr>
             <div class="row">
-                <label for="contrast">Contrast</label>
-                <input v-model="settings.contrast" id="contrast" type="range" min="0.0" max="1.0" step="0.01">
-            </div>
-            <div class="row">
                 <label for="pixelation">Pixelation</label>
                 <input v-model="settings.pixelation" id="pixelation" type="range" min="0.2" max="1.5" step="0.1">
             </div>
             <div class="row">
                 <label for="rotationSpeed">Rotation Speed</label>
-                <input v-model="settings.rotationSpeed" id="rotationSpeed" type="range" min="2" max="20" step="0.5">
+                <input v-model="settings.rotationSpeed" id="rotationSpeed" type="range" min="1" max="15" step="0.5">
             </div>
             <div class="row">
                 <label for="colorName">Color Name</label>
-                <input v-model="colorName" id="colorName" type="range" min="0" :max="colors.length - 1" step="1">
+                <input v-model="settings.colorName" id="colorName" type="range" min="0" :max="colors.length - 1" step="1">
             </div>
             <div class="row">
                 <label for="colorPadding">Color Padding</label>
-                <input v-model="colorPadding" id="colorPadding" type="range" min="0" :max="(shades - (shades % 2)) - 1" step="1">
+                <input v-model="settings.colorPadding" id="colorPadding" type="range" min="0" :max="(shades - (shades % 2)) - 1" step="1">
+            </div>
+            <div class="row">
+                <label for="contrast">Contrast</label>
+                <input v-model="settings.contrast" id="contrast" type="range" min="0.0" max="1.0" step="0.01">
             </div>
             <div class="row">
                 <label for="colorPadding">High Contrast</label>
@@ -80,7 +80,6 @@
 <script>
 import Vue from 'vue';
 import { mapActions, mapMutations, mapState } from 'vuex';
-import colormap from 'colormap';
 import colorscale from 'colormap/colorScale';
 
 function getKey() {
@@ -116,10 +115,10 @@ export default Vue.extend({
                 contrast: 0,
                 pixelation: 0,
                 rotationSpeed: 0,
+                colorPadding: 0,
+                colorName: 0,
             },
             colors: Object.keys(colorscale),
-            colorName: 0,
-            colorPadding: 0,
             shades: 40,
         };
     },
@@ -130,12 +129,6 @@ export default Vue.extend({
                 this.SET_OPTIONS(settings);
                 this.sendMessage({ settings });
             },
-        },
-        colorName(value) {
-            this.getColorMap(value);
-        },
-        colorPadding() {
-            this.getColorMap(this.colorName);
         },
     },
     computed: {
@@ -148,6 +141,8 @@ export default Vue.extend({
             'contrast',
             'pixelation',
             'rotationSpeed',
+            'colorPadding',
+            'colorName',
             'stopMultiplicator',
             'currentRecordStatus',
             'renderStatus',
@@ -155,18 +150,6 @@ export default Vue.extend({
         globeTexture: {
             ...mapState({ get: 'globeTexture' }),
             ...mapMutations({ set: 'SET_GLOBE_TEXTURE' }),
-        },
-        color1: {
-            ...mapState({ get: 'color1' }),
-            ...mapMutations({ set: 'SET_COLOR_1' }),
-        },
-        color2: {
-            ...mapState({ get: 'color2' }),
-            ...mapMutations({ set: 'SET_COLOR_2' }),
-        },
-        color3: {
-            ...mapState({ get: 'color3' }),
-            ...mapMutations({ set: 'SET_COLOR_3' }),
         },
         useColor3: {
             ...mapState({ get: 'useColor3' }),
@@ -255,17 +238,6 @@ export default Vue.extend({
             'SET_OPTIONS',
             'addMidiController',
         ]),
-        getColorMap(colorMapIndex) {
-            let colors = colormap({
-                colormap: this.colors[colorMapIndex],
-                nshades: this.shades,
-                format: 'hex',
-                alpha: 1
-            });
-            this.color1 = colors[this.colorPadding];
-            this.color2 = colors[(colors.length - (colors.length % 2)) / 2];
-            this.color3 = colors[colors.length - 1 - this.colorPadding];
-        },
         onResize() {
             if (window.innerWidth > 1000 || window.innerHeight > 1000) {
                 if (!this.currentRecordStatus) {

@@ -63,6 +63,8 @@ export const state = () => ({
     contrast: localStorage.contrast ?? 0.35,
     pixelation: localStorage.pixelation ?? 1,
     rotationSpeed: localStorage.rotationSpeed ?? 2,
+    colorPadding: localStorage.colorPadding ?? 0,
+    colorName: localStorage.colorName ?? 0,
     donutMode: localStorage.donutMode ? JSON.parse(localStorage.donutMode) : false,
     stopMultiplicator: localStorage.stopMultiplicator ?? 1,
     currentRecordStatus: null,
