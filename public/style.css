@@ -25,12 +25,13 @@ body {
     padding: 20px;
 }
 .controls > .row {
-    display: block;
+    display: flex;
     margin: 3px 0;
 }
 .controls label {
-    display: inline-block;
-    vertical-align: top;
+    display: flex;
+    flex-grow: 1;
+    padding-right: 35px;
 }
 .controls input,
 .controls select {
