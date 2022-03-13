@@ -78,6 +78,21 @@ export default Vue.extend({
             path: '/myapp',
             port: process.env.NODE_ENV !== 'production' ? 9001 : 9002,
             secure: process.env.NODE_ENV === 'production',
+            debug: 3,
+            config: {
+                iceServers: [
+                    {
+                        urls: "turn:openrelay.metered.ca:80",
+                        username: "openrelayproject",
+                        credential: "openrelayproject"
+                    },
+                    {
+                        urls: "turn:openrelay.metered.ca:443",
+                        username: "openrelayproject",
+                        credential: "openrelayproject"
+                    },
+                ],
+            },
         });
     
         this.initPeer();
