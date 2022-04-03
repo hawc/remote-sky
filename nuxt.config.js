@@ -23,7 +23,7 @@ export default {
   ],
 
   plugins: [
-    { src: '~/plugins/default.js', mode: 'server' }
+    { src: '~/plugins/default.js' },
   ],
 
   serverMiddleware: {

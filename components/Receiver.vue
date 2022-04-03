@@ -17,6 +17,7 @@
 
 <script>
 import Vue from 'vue';
+import { mapActions, mapState } from 'vuex';
 import QRCode from 'qrcode';
 import Renderer from './Renderer.vue';
 
@@ -39,22 +40,12 @@ export default Vue.extend({
         };
     },
     computed: {
-        settings() {
-            return {
-                globeDiameter: this.$store.state.globeDiameter,
-                ringsCount: this.$store.state.ringsCount,
-                ringsDiameter: this.$store.state.ringsDiameter,
-                ringsDistance: this.$store.state.ringsDistance,
-                ringsTilt: this.$store.state.ringsTilt,
-                contrast: this.$store.state.contrast,
-                pixelation: this.$store.state.pixelation,
-                rotationSpeed: this.$store.state.rotationSpeed,
-                colorPadding: this.$store.state.colorPadding,
-                colorName: this.$store.state.colorName,
-            }
-        },
+        ...mapState(['settings']),
     },
     methods: {
+        ...mapActions([
+            'SET_OPTIONS',
+        ]),
         initPeer() {
             this.generateQrCode(`https://${ location.hostname }/sender?k=${ this.key }`);
 
@@ -68,7 +59,7 @@ export default Vue.extend({
                     });
                     connection.on('data', (data) => {
                         if ('settings' in data) {
-                            this.$refs.renderer.SET_OPTIONS(data.settings);
+                            this.SET_OPTIONS(data.settings);
                         }
                     });
                 });

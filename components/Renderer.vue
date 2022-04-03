@@ -7,7 +7,7 @@
 
 <script>
 import Vue from 'vue';
-import { mapActions, mapMutations, mapState } from 'vuex';
+import { mapMutations, mapState } from 'vuex';
 import p5 from 'p5';
 import vert from '@/assets/threshold.vert';
 import frag from '@/assets/threshold.frag';
@@ -17,6 +17,12 @@ import colorscale from 'colormap/colorScale';
 
 let back = null;
 let front = null;
+
+const modelTypes = [
+    'box',
+    'sphere',
+    'torus',
+];
 
 export default Vue.extend({
     data() {
@@ -36,47 +42,31 @@ export default Vue.extend({
     },
     computed: {
         ...mapState([
-            'globeDiameter',
-            'ringsCount',
-            'ringsDiameter',
-            'ringsDistance',
-            'ringsTilt',
-            'globeTexture',
-            'colorPreset',
-            'colorName',
-            'colorPadding',
-            'useColor3',
-            'contrast',
-            'pixelation',
-            'rotationSpeed',
-            'donutMode',
+            'settings',
             'stopMultiplicator',
             'isRecording',
             'isRecordingNow',
             'gifData',
         ]),
-        sizeRatio () {
+        sizeRatio() {
             return document.querySelector('main canvas').offsetWidth / 800;
         },
-        pixelDensity () {
-            return (1.7 - this.pixelation) * ((0.5 / window.devicePixelRatio) * this.sizeRatio);
+        pixelDensity() {
+            return (1.7 - this.settings.pixelation) * ((0.5 / window.devicePixelRatio) * this.sizeRatio);
         },
-        maxDimension () {
+        maxDimension() {
             return Math.max(window.innerWidth, window.innerHeight);
         },
     },
     watch: {
-        colorName(value) {
+        'settings.colorName'(value) {
             this.getColorMap(value);
         },
-        colorPadding() {
-            this.getColorMap(this.colorName);
+        'settings.colorPadding'() {
+            this.getColorMap(this.settings.colorName);
         },
     },
     methods: {
-        ...mapActions([
-            'SET_OPTIONS',
-        ]),
         ...mapMutations([
             'SET_IS_RECORDING',
             'SET_IS_RECORDING_NOW',
@@ -95,11 +85,11 @@ export default Vue.extend({
                 format: 'hex',
                 alpha: 1
             });
-            this.color1 = colors[this.colorPadding];
+            this.color1 = colors[this.settings.colorPadding];
             this.color2 = colors[(colors.length - (colors.length % 2)) / 2];
-            this.color3 = colors[colors.length - 1 - this.colorPadding];
+            this.color3 = colors[colors.length - 1 - this.settings.colorPadding];
         },
-        hexToRgb (hex) {
+        hexToRgb(hex) {
             const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
             hex = hex.replace(shorthandRegex, function (m, r, g, b) {
                 return r + r + g + g + b + b;
@@ -113,7 +103,7 @@ export default Vue.extend({
                 parseInt(result[3], 16) / 255,
             ]) : null;
         },
-        getImageData (canvas1, canvas2, width, height) {
+        getImageData(canvas1, canvas2, width, height) {
             const c = this.$refs.canvasDump;
             c.width = width;
             c.height = height;
@@ -125,7 +115,7 @@ export default Vue.extend({
 
             return c.toDataURL();
         },
-        createGif (images) {
+        createGif(images) {
             this.SET_IS_RECORDING_NOW(false);
             this.SET_CURRENT_RECORD_STATUS('render');
             gifshot.createGIF({
@@ -141,7 +131,7 @@ export default Vue.extend({
             }, (object) => {
                 if (!object.error) {
                     const image = object.image;
-                    this.SET_DL_NAME(`planet-${this.globeTexture}.gif`);
+                    this.SET_DL_NAME(`planet-${ this.settings.globeTexture }.gif`);
                     this.SET_DL_GIF(image);
                     this.SET_DL_READY(true);
                     this.recordButtonDisabled = false;
@@ -179,9 +169,6 @@ export default Vue.extend({
                     backgroundGraphic = p.createGraphics(800, 800, p.WEBGL);
                     bgShader = p.createShader(vert, frag);
                     p.shader(bgShader);
-                    bgShader.setUniform('color2', this.hexToRgb(this.skyColors[0]));
-                    bgShader.setUniform('color1', this.hexToRgb(this.skyColors[1]));
-                    bgShader.setUniform('color3', this.hexToRgb(this.skyColors[2]));
                     bgShader.setUniform('thresholdValue', 0.4);
                     bgShader.setUniform('useColor3', 0.0);
                     p.setAttributes('preserveDrawingBuffer', true);
@@ -189,8 +176,11 @@ export default Vue.extend({
                 p.draw = () => {
                     backgroundGraphic.clear();
                     p.pixelDensity(this.pixelDensity);
-                    const diameter = 2 + (1.6 * ((this.globeDiameter / 170) - 0.5));
+                    const diameter = 2 + (1.6 * ((this.settings.globeDiameter / 170) - 0.5));
                     backgroundGraphic.image(loadedBgTexture, -400 * diameter, -400 * diameter, 800 * diameter, 800 * diameter);
+                    bgShader.setUniform('color1', this.hexToRgb(this.$shadeHexColor(this.color1, 0.7)));
+                    bgShader.setUniform('color2', this.hexToRgb('#00000f'));
+                    bgShader.setUniform('color3', this.hexToRgb(this.$shadeHexColor(this.color2, 0.7)));
                     bgShader.setUniform('tex0', backgroundGraphic);
                     p.rect(0, 0, p.width, p.height);
                 };
@@ -218,7 +208,7 @@ export default Vue.extend({
                 let loopCount = 0;
                 let recordingLoop = null;
                 p.draw = () => {
-                    frame = frame + 0.0075 * this.rotationSpeed * this.stopMultiplicator;
+                    frame = frame + 0.0075 * this.settings.rotationSpeed * this.stopMultiplicator;
                     loopCount = Math.floor(frame / (2 * Math.PI));
                     const frameRotation = (Math.round(frame % (2 * Math.PI) * 100) / 100);
                     if (this.isRecordingNow) {
@@ -237,14 +227,14 @@ export default Vue.extend({
                             this.createGif(this.gifData);
                         }
                     }
-                    const donutMode = this.donutMode;
+                    const modelTypeName = modelTypes[this.settings.modelType] ?? 'sphere';
                     planetGraphic.clear();
 
                     p.pixelDensity(this.pixelDensity);
                     planetGraphic.background(p.color(255, 0, 0));
                     planetGraphic.noStroke();
                     planetGraphic.fill(p.color(176, 176, 176));
-                    planetGraphic.texture(donutMode ? loadedRingsTexture2 : loadedRingsTexture);
+                    planetGraphic.texture(modelTypeName !== 'sphere' ? loadedRingsTexture2 : loadedRingsTexture);
 
                     planetGraphic.push();
                     planetGraphic.rotateY(frame);
@@ -253,15 +243,19 @@ export default Vue.extend({
                     planetGraphic.rotateY(frame * 2);
 
                     planetGraphic.push();
-                    const globeDiameter = parseInt(this.globeDiameter);
-                    const globeTexture = this.globeTexture;
+                    const globeDiameter = parseInt(this.settings.globeDiameter);
+                    const globeTexture = this.settings.globeTexture;
                     const colorPresetUsed = this.colorPreset;
                     planetGraphic.texture(loadedTextures[textures.indexOf(globeTexture)]);
-                    if (donutMode) {
-                        planetGraphic.torus(globeDiameter, 24, 24);
-                    } else {
-                        planetGraphic.sphere(globeDiameter, 24, 24);
+
+                    switch (modelTypeName) {
+                        case 'box':
+                            planetGraphic[modelTypeName](globeDiameter + 20);
+                            break;
+                        default:
+                            planetGraphic[modelTypeName](globeDiameter, 24, 24);
                     }
+
                     planetGraphic.pop();
 
                     planetGraphic.push();
@@ -269,12 +263,21 @@ export default Vue.extend({
                     planetGraphic.rotateY(0);
                     planetGraphic.rotateZ(0);
                     planetGraphic.rotateX(Math.PI / 2);
-                    const torusDetailY = donutMode ? 24 : 2;
-                    const torusCount = parseInt(this.ringsCount);
-                    const ringsDiameter = parseInt(this.ringsDiameter);
-                    const ringsDistance = parseInt(this.ringsDistance);
+                    let torusDetailY = 2;
+                    switch (modelTypeName) {
+                        case 'torus':
+                            torusDetailY = 24;
+                            break;
+                        case 'box':
+                            torusDetailY = 4;
+                            break;
+
+                    }
+                    const torusCount = parseInt(this.settings.ringsCount);
+                    const ringsDiameter = parseInt(this.settings.ringsDiameter);
+                    const ringsDistance = parseInt(this.settings.ringsDistance);
                     let ringBefore = 0;
-                    const tilt = this.ringsTilt;
+                    const tilt = this.settings.ringsTilt;
                     if (torusCount >= 1) {
                         planetGraphic.push();
                         ringBefore = ringsDistance + globeDiameter + 30;
@@ -309,7 +312,7 @@ export default Vue.extend({
                     planetGraphic.pop();
 
                     planetGraphic.pop();
-                    const threshold = parseFloat(this.contrast);
+                    const threshold = parseFloat(this.settings.contrast);
                     p.shader(frontShader);
                     frontShader.setUniform('tex0', planetGraphic);
                     if (colorPresetUsed) {
@@ -321,26 +324,28 @@ export default Vue.extend({
                         frontShader.setUniform('color2', this.hexToRgb(this.color2));
                         frontShader.setUniform('color3', this.hexToRgb(this.color3));
                     }
-                    frontShader.setUniform('useColor3', this.useColor3 || colorPresetUsed ? 1.0 : 0.0);
+                    frontShader.setUniform('useColor3', this.settings.useColor3 || colorPresetUsed ? 1.0 : 0.0);
                     frontShader.setUniform('thresholdValue', threshold);
 
                     p.rect(0, 0, p.width, p.height);
                 };
             };
-            document.addEventListener('keyup', event => {
-                if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
-                    this.SET_STOP_MULTIPLICATOR(0);
-                } else {
-                    this.SET_STOP_MULTIPLICATOR(1);
-                }
-            });
+
             back = new p5(this.backLayer);
             front = new p5(this.frontLayer);
         },
     },
     mounted() {
-        this.getColorMap(this.colorName);
+        this.getColorMap(this.settings.colorName);
         this.initP5();
+
+        document.addEventListener('keyup', event => {
+            if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
+                this.SET_STOP_MULTIPLICATOR(0);
+            } else {
+                this.SET_STOP_MULTIPLICATOR(1);
+            }
+        });
     },
 });
 </script>

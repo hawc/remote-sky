@@ -3,53 +3,53 @@
         <div class="controls">
             <div class="row">
                 <label for="globeDiameter">Globe Diameter</label>
-                <input v-model="settings.globeDiameter" id="globeDiameter" type="range" min="1" max="170">
+                <input v-model="controlSettings.globeDiameter" id="globeDiameter" type="range" min="1" max="170">
             </div>
             <div class="row">
                 <label for="ringsCount">Rings Count</label>
-                <input v-model="settings.ringsCount" id="ringsCount" type="range" min="0" max="4">
+                <input v-model="controlSettings.ringsCount" id="ringsCount" type="range" min="0" max="4">
             </div>
             <div class="row">
                 <label for="ringsDiameter">Rings Diameter</label>
-                <input v-model="settings.ringsDiameter" id="ringsDiameter" type="range" min="0" max="20">
+                <input v-model="controlSettings.ringsDiameter" id="ringsDiameter" type="range" min="0" max="20">
             </div>
             <div class="row">
                 <label for="ringsDistance">Rings Distance</label>
-                <input v-model="settings.ringsDistance" id="ringsDistance" type="range" min="0" max="50">
+                <input v-model="controlSettings.ringsDistance" id="ringsDistance" type="range" min="0" max="100">
             </div>
             <div class="row">
                 <label for="ringsTilt">Rings Tilt</label>
-                <input v-model="settings.ringsTilt" id="ringsTilt" type="range" min="0.0" max="10.0" step="0.01">
+                <input v-model="controlSettings.ringsTilt" id="ringsTilt" type="range" min="0.0" max="10.0" step="0.01">
             </div>
             <hr>
             <div class="row">
                 <label for="pixelation">Pixelation</label>
-                <input v-model="settings.pixelation" id="pixelation" type="range" min="0.2" max="1.5" step="0.1">
+                <input v-model="controlSettings.pixelation" id="pixelation" type="range" min="0.2" max="1.5" step="0.1">
             </div>
             <div class="row">
                 <label for="rotationSpeed">Rotation Speed</label>
-                <input v-model="settings.rotationSpeed" id="rotationSpeed" type="range" min="1" max="15" step="0.5">
+                <input v-model="controlSettings.rotationSpeed" id="rotationSpeed" type="range" min="1" max="15" step="0.5">
             </div>
             <div class="row">
                 <label for="colorName">Color Name</label>
-                <input v-model="settings.colorName" id="colorName" type="range" min="0" :max="colors.length - 1" step="1">
+                <input v-model="controlSettings.colorName" id="colorName" type="range" min="0" :max="$colors.length - 1" step="1">
             </div>
             <div class="row">
                 <label for="colorPadding">Color Padding</label>
-                <input v-model="settings.colorPadding" id="colorPadding" type="range" min="0" :max="(shades - (shades % 2)) - 1" step="1">
+                <input v-model="controlSettings.colorPadding" id="colorPadding" type="range" min="0" :max="($shades - ($shades % 2)) - 1" step="1">
             </div>
             <div class="row">
                 <label for="contrast">Contrast</label>
-                <input v-model="settings.contrast" id="contrast" type="range" min="0.0" max="1.0" step="0.01">
+                <input v-model="controlSettings.contrast" id="contrast" type="range" min="0.0" max="1.0" step="0.01">
             </div>
             <div class="row">
                 <label for="colorPadding">High Contrast</label>
-                <input v-model="useColor3" id="useColor3" type="checkbox">
+                <input v-model="controlSettings.useColor3" id="useColor3" type="checkbox">
             </div>
             <hr>
             <div class="row">
                 <label for="globeTexture">Globe Texture</label>
-                <select v-model="globeTexture" id="globeTexture">
+                <select v-model="controlSettings.globeTexture" id="globeTexture">
                     <option value="mercury">Mercury</option>
                     <option value="venus">Venus</option>
                     <option value="earth">Earth</option>
@@ -65,8 +65,8 @@
         </div>
         <div class="controls controls__semi">
             <div class="row">
-                <label for="donutMode" class="donut">🍩</label>
-                <input v-model="donutMode" id="donutMode" type="checkbox">
+                <label for="modelType">Model Type</label>
+                <input v-model="controlSettings.modelType" id="modelType" type="range" min="0" max="2" step="1">
             </div>
         </div>
         <div class="container container--controls">
@@ -80,7 +80,6 @@
 <script>
 import Vue from 'vue';
 import { mapActions, mapMutations, mapState } from 'vuex';
-import colorscale from 'colormap/colorScale';
 
 function getKey() {
     return (Math.floor(Math.random() * 2 ** 18).toString(36).padStart(4, 0)).toString();
@@ -106,59 +105,23 @@ export default Vue.extend({
             connection: null,
             response: '',
             statusMessage: 'Connecting...',
-            settings: {
-                globeDiameter: 0,
-                ringsCount: 0,
-                ringsDiameter: 0,
-                ringsDistance: 0,
-                ringsTilt: 0,
-                contrast: 0,
-                pixelation: 0,
-                rotationSpeed: 0,
-                colorPadding: 0,
-                colorName: 0,
-            },
-            colors: Object.keys(colorscale),
-            shades: 40,
+            controlSettings: {},
+            avoidChanges: false,
         };
     },
     watch: {
-        settings: {
+        controlSettings: {
             deep: true,
             handler(settings) {
-                this.SET_OPTIONS(settings);
-                this.sendMessage({ settings });
+                if (!this.avoidChanges) {
+                    this.SET_OPTIONS(settings);
+                    this.sendMessage({ settings });
+                }
             },
         },
     },
     computed: {
-        ...mapState([
-            'globeDiameter',
-            'ringsCount',
-            'ringsDiameter',
-            'ringsDistance',
-            'ringsTilt',
-            'contrast',
-            'pixelation',
-            'rotationSpeed',
-            'colorPadding',
-            'colorName',
-            'stopMultiplicator',
-            'currentRecordStatus',
-            'renderStatus',
-        ]),
-        globeTexture: {
-            ...mapState({ get: 'globeTexture' }),
-            ...mapMutations({ set: 'SET_GLOBE_TEXTURE' }),
-        },
-        useColor3: {
-            ...mapState({ get: 'useColor3' }),
-            ...mapMutations({ set: 'SET_USE_COLOR_3' }),
-        },
-        donutMode: {
-            ...mapState({ get: 'donutMode' }),
-            ...mapMutations({ set: 'SET_DONUT_MODE' }),
-        },
+        ...mapState(['settings']),
         dlReady: {
             ...mapState({ get: 'dlReady' }),
             ...mapMutations({ set: 'SET_DL_READY' }),
@@ -220,9 +183,6 @@ export default Vue.extend({
     methods: {
         ...mapMutations([
             'SET_COLOR_PRESET',
-            'SET_COLOR_1',
-            'SET_COLOR_2',
-            'SET_COLOR_3',
             'SET_USE_COLOR_3',
             'SET_DONUT_MODE',
             'SET_CURRENT_RECORD_STATUS',
@@ -274,6 +234,7 @@ export default Vue.extend({
                     this.connection.on('data', (data) => {
                         if ('settings' in data) {
                             this.SET_OPTIONS(data.settings);
+                            this.controlSettings = data.settings;
                         }
                     });
                     this.connection.on('close', () => {
@@ -317,16 +278,7 @@ export default Vue.extend({
             });
         }
     },
-    async mounted() { 
-        this.settings.globeDiameter = this.globeDiameter;
-        this.settings.ringsCount = this.ringsCount;
-        this.settings.ringsDiameter = this.ringsDiameter;
-        this.settings.ringsDistance = this.ringsDistance;
-        this.settings.ringsTilt = this.ringsTilt;
-        this.settings.contrast = this.contrast;
-        this.settings.pixelation = this.pixelation;
-        this.settings.rotationSpeed = this.rotationSpeed;
-
+    async mounted() {
         this.$nextTick(() => {
             window.addEventListener('resize', this.onResize);
             this.addMidiController();

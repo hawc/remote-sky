@@ -1,3 +1,9 @@
+
+import colorscale from 'colormap/colorScale';
+
+const colors = Object.keys(colorscale);
+const shades = 40;
+
 const defaults = {
     globeDiameter: {
         min: 1,
@@ -13,7 +19,7 @@ const defaults = {
     },
     ringsDistance: {
         min: 0,
-        max: 50,
+        max: 100,
     },
     ringsTilt: {
         min: 0.0,
@@ -28,8 +34,20 @@ const defaults = {
         max: 1.5,
     },
     rotationSpeed: {
-        min: 2,
-        max: 20,
+        min: 1,
+        max: 15,
+    },
+    colorName: {
+        min: 0,
+        max: colors.length - 1,
+    },
+    colorPadding: {
+        min: 0,
+        max: (shades - (shades % 2)) - 1,
+    },
+    modelType: {
+        min: 0,
+        max: 3,
     },
     texturePresets: [
         'mercury',
@@ -40,33 +58,37 @@ const defaults = {
     ],
 };
 
-function getRandomNumber (data) {
+function getRandomNumber(data) {
     const min = Math.ceil(data.min);
     const max = Math.floor(data.max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-function getRandomElement (array) {
+
+function getRandomElement(array) {
     return array[(Math.random() * array.length) | 0];
 }
 
+function getFromLocalStorage(key) {
+    return typeof localStorage.remoteSkySettings !== 'undefined' ? JSON.parse(localStorage.remoteSkySettings)[key] : null;
+}
+
 export const state = () => ({
-    globeDiameter: localStorage.globeDiameter ?? getRandomNumber(defaults.globeDiameter),
-    ringsCount: localStorage.ringsCount ?? getRandomNumber(defaults.ringsCount),
-    ringsDiameter: localStorage.ringsDiameter ?? getRandomNumber(defaults.ringsDiameter),
-    ringsDistance: localStorage.ringsDistance ?? getRandomNumber(defaults.ringsDistance),
-    ringsTilt: localStorage.ringsTilt ?? getRandomNumber(defaults.ringsTilt),
-    globeTexture: localStorage.globeTexture ?? getRandomElement(defaults.texturePresets),
-    color1: localStorage.color1 ?? '#fafafa',
-    color2: localStorage.color2 ?? '#0a0a0a',
-    color3: localStorage.color3 ?? '#477d85',
-    useColor3: localStorage.useColor3 ? JSON.parse(localStorage.useColor3) : false,
-    contrast: localStorage.contrast ?? 0.35,
-    pixelation: localStorage.pixelation ?? 1,
-    rotationSpeed: localStorage.rotationSpeed ?? 2,
-    colorPadding: localStorage.colorPadding ?? 0,
-    colorName: localStorage.colorName ?? 0,
-    donutMode: localStorage.donutMode ? JSON.parse(localStorage.donutMode) : false,
-    stopMultiplicator: localStorage.stopMultiplicator ?? 1,
+    settings: {
+        globeDiameter: getFromLocalStorage('globeDiameter') ?? getRandomNumber(defaults.globeDiameter),
+        ringsCount: getFromLocalStorage('ringsCount') ?? getRandomNumber(defaults.ringsCount),
+        ringsDiameter: getFromLocalStorage('ringsDiameter') ?? getRandomNumber(defaults.ringsDiameter),
+        ringsDistance: getFromLocalStorage('ringsDistance') ?? getRandomNumber(defaults.ringsDistance),
+        ringsTilt: getFromLocalStorage('ringsTilt') ?? getRandomNumber(defaults.ringsTilt),
+        globeTexture: getFromLocalStorage('globeTexture') ?? getRandomElement(defaults.texturePresets),
+        useColor3: getFromLocalStorage('useColor3') ? JSON.parse(getFromLocalStorage('useColor3')) : false,
+        contrast: getFromLocalStorage('contrast') ?? 0.35,
+        pixelation: getFromLocalStorage('pixelation') ?? 1,
+        rotationSpeed: getFromLocalStorage('rotationSpeed') ?? 2,
+        colorPadding: getFromLocalStorage('colorPadding') ?? 0,
+        colorName: getFromLocalStorage('colorName') ?? 0,
+        modelType: getFromLocalStorage('modelType') ? JSON.parse(getFromLocalStorage('modelType')) : false,
+    },
+    stopMultiplicator: getFromLocalStorage('stopMultiplicator') ?? 1,
     currentRecordStatus: null,
     renderStatus: null,
     isRecording: false,
@@ -80,32 +102,11 @@ export const state = () => ({
 export const mutations = {
     SET_OPTION (state, payload) {
         const property = Object.keys(payload)[0];
-        state[property] = payload[property];
-        localStorage[property] = payload[property];
+        state.settings[property] = payload[property];
     },
     SET_GLOBE_TEXTURE (state, payload) {
         state.globeTexture = payload;
         localStorage.globeTexture = payload;
-    },
-    SET_COLOR_1 (state, payload) {
-        state.color1 = payload;
-        localStorage.color1 = payload;
-    },
-    SET_COLOR_2 (state, payload) {
-        state.color2 = payload;
-        localStorage.color2 = payload;
-    },
-    SET_COLOR_3 (state, payload) {
-        state.color3 = payload;
-        localStorage.color3 = payload;
-    },
-    SET_USE_COLOR_3 (state, payload) {
-        state.useColor3 = payload;
-        localStorage.useColor3 = payload.toString();
-    },
-    SET_DONUT_MODE (state, payload) {
-        state.donutMode = payload;
-        localStorage.donutMode = payload.toString();
     },
     SET_STOP_MULTIPLICATOR (state, payload) {
         state.stopMultiplicator = payload;
@@ -147,6 +148,7 @@ export const actions = {
             data[optionKey] = payload[optionKey];
             commit('SET_OPTION', data);
         });
+        localStorage.remoteSkySettings = JSON.stringify(payload);
     },
     addMidiController (context) {
         const connect = () => {
@@ -157,10 +159,9 @@ export const actions = {
         };
 
         const midiReady = (midi) => {
-            console.log(midi);
             // Also react to device changes.
             midi.addEventListener('statechange', (event) => initDevices(event.target));
-            initDevices(midi); // see the next section!
+            initDevices(midi);
         };
         const midiIn = [];
 
@@ -175,17 +176,25 @@ export const actions = {
 
         const midiMessageReceived = ({ data }) => {
             const knobMapping = {
-                32: (value) => context.commit('SET_GLOBE_DIAMETER', value),
-                33: (value) => context.commit('SET_PIXELATION', value),
-            };
-            const knobMapping2 = {
                 32: 'globeDiameter',
-                33: 'pixelation',
+                33: 'ringsCount',
+                34: 'ringsDiameter',
+                35: 'ringsDistance',
+                36: 'ringsTilt',
+                37: 'pixelation',
+                38: 'rotationSpeed',
+                39: 'colorName',
+                40: 'colorPadding',
+                41: 'contrast',
+                47: 'modelType',
             };
             const knob = data['1'];
             const degree = data['2'];
-
-            knobMapping[knob](limitNumber(degree, defaults[knobMapping2[knob]]));
+            const commitData = {};
+            const key = knobMapping[knob];
+            console.log(degree, knob, defaults[knobMapping[knob]]);
+            commitData[key] = limitNumber(degree, defaults[knobMapping[knob]]);
+            context.commit('SET_OPTION', commitData);
         };
 
         // Start listening to MIDI messages.
@@ -196,7 +205,7 @@ export const actions = {
         };
 
         const limitNumber = (number, options) => {
-            return Math.min(Math.max(number / 127 * options.max, options.min), options.max);
+            return Math.floor(Math.min(Math.max(number / 127 * options.max, options.min), options.max));
         };
 
         connect();
