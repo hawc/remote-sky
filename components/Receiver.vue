@@ -21,10 +21,6 @@ import { mapActions, mapState } from 'vuex';
 import QRCode from 'qrcode';
 import Renderer from './Renderer.vue';
 
-function getKey() {
-    return (Math.floor(Math.random() * 2 ** 18).toString(36).padStart(4, 0)).toString();
-}
-
 export default Vue.extend({
     components: { 
         Renderer,
@@ -81,7 +77,7 @@ export default Vue.extend({
     async mounted() {
         const { peerjs } = await import('peerjs');
 
-        const key = getKey();
+        const key = this.$getKey();
         this.key = key;
 
         this.peer = new peerjs.Peer(key, {

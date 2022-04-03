@@ -14,6 +14,7 @@ import frag from '@/assets/threshold.frag';
 import gifshot from 'gifshot';
 import colormap from 'colormap';
 import colorscale from 'colormap/colorScale';
+import { textures } from 'assets/defaults';
 
 let back = null;
 let front = null;
@@ -131,7 +132,7 @@ export default Vue.extend({
             }, (object) => {
                 if (!object.error) {
                     const image = object.image;
-                    this.SET_DL_NAME(`planet-${ this.settings.globeTexture }.gif`);
+                    this.SET_DL_NAME(`planet-${ textures[this.settings.globeTexture] }.gif`);
                     this.SET_DL_GIF(image);
                     this.SET_DL_READY(true);
                     this.recordButtonDisabled = false;
@@ -147,13 +148,7 @@ export default Vue.extend({
         initP5() {
             let loadedRingsTexture;
             let loadedRingsTexture2;
-            const textures = [
-                'mercury',
-                'venus',
-                'earth',
-                'moon',
-                'mars',
-            ];
+            
             const loadedTextures = [];
 
             this.backLayer = (p) => {
@@ -170,7 +165,6 @@ export default Vue.extend({
                     bgShader = p.createShader(vert, frag);
                     p.shader(bgShader);
                     bgShader.setUniform('thresholdValue', 0.4);
-                    bgShader.setUniform('useColor3', 0.0);
                     p.setAttributes('preserveDrawingBuffer', true);
                 };
                 p.draw = () => {
@@ -192,7 +186,7 @@ export default Vue.extend({
                     p.createDiv().class('root');
 
                     textures.forEach(texture => {
-                        loadedTextures.push(p.loadImage(require(`@/assets/textures/${texture}.jpg`)));
+                        loadedTextures.push(p.loadImage(require(`@/assets/textures/${ texture }.jpg`)));
                     });
                     loadedRingsTexture = p.loadImage(require('@/assets/textures/2d2.png'));
                     loadedRingsTexture2 = p.loadImage(require('@/assets/textures/2d-donut.png'));
@@ -243,10 +237,9 @@ export default Vue.extend({
                     planetGraphic.rotateY(frame * 2);
 
                     planetGraphic.push();
-                    const globeDiameter = parseInt(this.settings.globeDiameter);
-                    const globeTexture = this.settings.globeTexture;
+                    const globeDiameter = this.settings.globeDiameter;
                     const colorPresetUsed = this.colorPreset;
-                    planetGraphic.texture(loadedTextures[textures.indexOf(globeTexture)]);
+                    planetGraphic.texture(loadedTextures[this.settings.globeTexture ?? 0]);
 
                     switch (modelTypeName) {
                         case 'box':
@@ -273,22 +266,22 @@ export default Vue.extend({
                             break;
 
                     }
-                    const torusCount = parseInt(this.settings.ringsCount);
-                    const ringsDiameter = parseInt(this.settings.ringsDiameter);
-                    const ringsDistance = parseInt(this.settings.ringsDistance);
+                    const torusCount = this.settings.ringsCount;
+                    const ringsDiameter = this.settings.ringsDiameter;
+                    const ringsDistance = this.settings.ringsDistance * 100;
                     let ringBefore = 0;
                     const tilt = this.settings.ringsTilt;
                     if (torusCount >= 1) {
                         planetGraphic.push();
                         ringBefore = ringsDistance + globeDiameter + 30;
-                        planetGraphic.rotateX(tilt * -0.1);
+                        planetGraphic.rotateX(tilt * -1);
                         planetGraphic.torus(ringBefore, 4 + ringsDiameter, 48, torusDetailY);
                         planetGraphic.pop();
                     }
                     if (torusCount >= 2) {
                         planetGraphic.push();
                         ringBefore = ringBefore + 20 + (ringsDiameter * 2);
-                        planetGraphic.rotateX(tilt * 0.2);
+                        planetGraphic.rotateX(tilt * 2);
                         planetGraphic.rotateZ(frame * -0.025);
                         planetGraphic.torus(ringBefore, ringsDiameter, 48, torusDetailY);
                         planetGraphic.pop();
@@ -296,7 +289,7 @@ export default Vue.extend({
                     if (torusCount >= 3) {
                         planetGraphic.push();
                         ringBefore = ringBefore + 50 + (ringsDiameter * 2);
-                        planetGraphic.rotateZ(frame * -0.001);
+                        planetGraphic.rotateZ(frame * -0.1);
                         planetGraphic.rotateX(tilt * 0.3);
                         planetGraphic.torus(ringBefore, 11 + ringsDiameter, 48, torusDetailY);
                         planetGraphic.pop();
@@ -305,7 +298,7 @@ export default Vue.extend({
                         planetGraphic.push();
                         ringBefore = ringBefore + 20 + (ringsDiameter * 2);
                         planetGraphic.rotateZ(frame * -0.015);
-                        planetGraphic.rotateX(tilt * -0.15);
+                        planetGraphic.rotateX(tilt * -1.5);
                         planetGraphic.torus(ringBefore, ringsDiameter / 2, 48, torusDetailY);
                         planetGraphic.pop();
                     }
@@ -324,7 +317,6 @@ export default Vue.extend({
                         frontShader.setUniform('color2', this.hexToRgb(this.color2));
                         frontShader.setUniform('color3', this.hexToRgb(this.color3));
                     }
-                    frontShader.setUniform('useColor3', this.settings.useColor3 || colorPresetUsed ? 1.0 : 0.0);
                     frontShader.setUniform('thresholdValue', threshold);
 
                     p.rect(0, 0, p.width, p.height);

@@ -1,72 +1,14 @@
 <template>
     <div>
         <div class="controls">
-            <div class="row">
-                <label for="globeDiameter">Globe Diameter</label>
-                <input v-model="controlSettings.globeDiameter" id="globeDiameter" type="range" min="1" max="170">
-            </div>
-            <div class="row">
-                <label for="ringsCount">Rings Count</label>
-                <input v-model="controlSettings.ringsCount" id="ringsCount" type="range" min="0" max="4">
-            </div>
-            <div class="row">
-                <label for="ringsDiameter">Rings Diameter</label>
-                <input v-model="controlSettings.ringsDiameter" id="ringsDiameter" type="range" min="0" max="20">
-            </div>
-            <div class="row">
-                <label for="ringsDistance">Rings Distance</label>
-                <input v-model="controlSettings.ringsDistance" id="ringsDistance" type="range" min="0" max="100">
-            </div>
-            <div class="row">
-                <label for="ringsTilt">Rings Tilt</label>
-                <input v-model="controlSettings.ringsTilt" id="ringsTilt" type="range" min="0.0" max="10.0" step="0.01">
-            </div>
-            <hr>
-            <div class="row">
-                <label for="pixelation">Pixelation</label>
-                <input v-model="controlSettings.pixelation" id="pixelation" type="range" min="0.2" max="1.5" step="0.1">
-            </div>
-            <div class="row">
-                <label for="rotationSpeed">Rotation Speed</label>
-                <input v-model="controlSettings.rotationSpeed" id="rotationSpeed" type="range" min="1" max="15" step="0.5">
-            </div>
-            <div class="row">
-                <label for="colorName">Color Name</label>
-                <input v-model="controlSettings.colorName" id="colorName" type="range" min="0" :max="$colors.length - 1" step="1">
-            </div>
-            <div class="row">
-                <label for="colorPadding">Color Padding</label>
-                <input v-model="controlSettings.colorPadding" id="colorPadding" type="range" min="0" :max="($shades - ($shades % 2)) - 1" step="1">
-            </div>
-            <div class="row">
-                <label for="contrast">Contrast</label>
-                <input v-model="controlSettings.contrast" id="contrast" type="range" min="0.0" max="1.0" step="0.01">
-            </div>
-            <div class="row">
-                <label for="colorPadding">High Contrast</label>
-                <input v-model="controlSettings.useColor3" id="useColor3" type="checkbox">
-            </div>
-            <hr>
-            <div class="row">
-                <label for="globeTexture">Globe Texture</label>
-                <select v-model="controlSettings.globeTexture" id="globeTexture">
-                    <option value="mercury">Mercury</option>
-                    <option value="venus">Venus</option>
-                    <option value="earth">Earth</option>
-                    <option value="moon">Moon</option>
-                    <option value="mars">Mars</option>
-                </select>
+            <div v-for="(controller, controllerKey) in controllers" :key="controllerKey" class="row">
+                <label :for="controllerKey">{{controllerKey}}</label>
+                <input v-model.number="controlSettings[controllerKey]" :id="controllerKey" type="range" :min="controller.min" :max="controller.max" :step="controller.step">
             </div>
             <hr>
             <div class="row center">
                 <button type="button" :disabled="recordButtonDisabled" @click="recordGif">Record GIF</button>
                 <p class="recordOutput">{{ recordOutput }}<span v-if="loadingIcon" class="loadingIcon"></span> <a v-show="dlReady" :href="dlGif" :download="dlName">Download GIF</a></p>
-            </div>
-        </div>
-        <div class="controls controls__semi">
-            <div class="row">
-                <label for="modelType">Model Type</label>
-                <input v-model="controlSettings.modelType" id="modelType" type="range" min="0" max="2" step="1">
             </div>
         </div>
         <div class="container container--controls">
@@ -80,10 +22,7 @@
 <script>
 import Vue from 'vue';
 import { mapActions, mapMutations, mapState } from 'vuex';
-
-function getKey() {
-    return (Math.floor(Math.random() * 2 ** 18).toString(36).padStart(4, 0)).toString();
-};
+import { defaults as controllers } from 'assets/defaults';
 
 export default Vue.extend({
     data() {
@@ -100,24 +39,28 @@ export default Vue.extend({
                 stop: 'GIF recording can\'t progress when rotation is paused.',
             },
             showMemoryNotice: window.innerWidth > 1000 || window.innerHeight > 1000,
-
             peer: null,
             connection: null,
             response: '',
             statusMessage: 'Connecting...',
             controlSettings: {},
             avoidChanges: false,
+            controllers,
         };
     },
     watch: {
         controlSettings: {
             deep: true,
             handler(settings) {
-                if (!this.avoidChanges) {
-                    this.SET_OPTIONS(settings);
-                    this.sendMessage({ settings });
-                }
+                this.SET_OPTIONS(settings);
+                this.sendMessage({ settings });
             },
+        },
+        settings: {
+            deep: true,
+            handler(settings) {
+                this.controlSettings = JSON.parse(JSON.stringify(settings));
+            }
         },
     },
     computed: {
@@ -286,10 +229,10 @@ export default Vue.extend({
 
         const { peerjs } = await import('peerjs');
 
-        this.peer = new peerjs.Peer(getKey(), {
+        this.peer = new peerjs.Peer(this.$getKey(), {
             host: location.hostname,
             path: '/myapp',
-            port: process.env.NODE_ENV !== 'production' ? 9001 : 9002,
+            port: process.env.NODE_ENV !== 'production' ? 9001 : 9002, // different port on live, because it's proxied there
             secure: process.env.NODE_ENV === 'production',
             config: {
                 iceServers: [

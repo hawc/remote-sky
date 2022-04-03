@@ -9,8 +9,10 @@ uniform float thresholdValue;
 uniform vec3 color1;
 uniform vec3 color2;
 uniform vec3 color3;
-uniform float useColor3;
 uniform float monotone;
+// unused, for passing in-between color. 
+// uniform float useColor3;
+float useColor3 = 0.0; // default value to interpolate third color.
 
 // this is a common glsl function of unknown origin to convert rgb colors to luminance
 // it performs a dot product of the input color against some known values that account for our eyes perception of brighness
