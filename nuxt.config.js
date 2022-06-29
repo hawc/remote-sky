@@ -40,6 +40,9 @@ export default {
   ],
 
   build: {
+    optimization: {
+      minimize: false, // disable all minimizers for build time reduction on digital ocean
+    },
     extend(config) {
       config.module.rules.push({
         test: /\.(frag|vert|glsl)$/,
