@@ -232,7 +232,7 @@ export default Vue.extend({
         this.peer = new peerjs.Peer(this.$getKey(), {
             host: location.hostname,
             path: '/myapp',
-            port: process.env.NODE_ENV !== 'production' ? 9001 : 9002, // different port on live, because it's proxied there
+            //port: process.env.NODE_ENV !== 'production' ? 9001 : 9002, // different port on live, because it's proxied there
             secure: process.env.NODE_ENV === 'production',
             config: {
                 iceServers: [

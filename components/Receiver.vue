@@ -83,7 +83,7 @@ export default Vue.extend({
         this.peer = new peerjs.Peer(key, {
             host: location.hostname,
             path: '/myapp',
-            port: process.env.NODE_ENV !== 'production' ? 9001 : 9002,
+            //port: process.env.NODE_ENV !== 'production' ? 9001 : 9002,
             secure: process.env.NODE_ENV === 'production',
             debug: 3,
             config: {
