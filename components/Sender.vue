@@ -5,11 +5,13 @@
                 <label :for="controllerKey">{{controllerKey}}</label>
                 <input v-model.number="controlSettings[controllerKey]" :id="controllerKey" type="range" :min="controller.min" :max="controller.max" :step="controller.step">
             </div>
+            <!-- removed until implemented
             <hr>
             <div class="row center">
                 <button type="button" :disabled="recordButtonDisabled" @click="recordGif">Record GIF</button>
                 <p class="recordOutput">{{ recordOutput }}<span v-if="loadingIcon" class="loadingIcon"></span> <a v-show="dlReady" :href="dlGif" :download="dlName">Download GIF</a></p>
             </div>
+            -->
         </div>
         <div class="container container--controls">
             <p id="caststatus" class="big">
