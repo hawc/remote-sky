@@ -1,21 +1,17 @@
 <template>
-  <div>Hi!</div>
+    <div>
+        <Receiver />
+    </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+    import Vue from 'vue';
+    import Receiver from '@/components/Receiver.vue';
 
-declare global {
-    interface Window {
-        parcelRequire: any;
-    }
-}
-
-if (typeof window !== 'undefined') {
-  window.parcelRequire = undefined;
-}
-
-export default Vue.extend({
-  name: 'IndexPage'
-})
+    export default Vue.extend({
+        name: 'IndexPage',
+        components: {
+            Receiver,
+        }
+    });
 </script>

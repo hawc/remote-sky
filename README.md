@@ -23,6 +23,8 @@ The rendering application currently only works on non-mobile Chrome browsers. Mo
 
 MIDI controls are implemented very static right now. This means you can pobably only use a Intech Grid PO16, it's only tested with a single device.
 
+You'll stumble upon code for creating GIF files and email sending when you look through the repo. This is part of a currently disabled feature. It'll come soon.
+
 ## Build Setup
 
 ```bash
